@@ -17,10 +17,9 @@
         <link rel="stylesheet" href="example.css">
     </head>
     <body>
-        <input type="text" id="urlInput" placeholder="Enter URL here">
-        <button id="searchButton">Search Text</button>
-
-        <iframe id="iframeWindow" class="iframeWindow"></iframe>
+        <!-- allow-scripts lets proxied pages run JS; allow-downloads is omitted so downloads never happen inside the frame -->
+        <iframe id="iframeWindow" class="iframeWindow"
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"></iframe>
     </body>
     <script src="example.js"></script>
 </html>
