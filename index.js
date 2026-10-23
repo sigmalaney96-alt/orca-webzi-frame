@@ -31,6 +31,29 @@ server.on('upgrade', (req, socket, head) => {
     }
 })
 
+const NON_RENDERABLE = /^(application\/(?!xhtml|xml|json|javascript)|audio\/|video\/|font\/)|^image\/(?!svg)/i;
+
+// Detects whether a URL serves a download (attachment or binary MIME type) by inspecting headers.
+app.get('/api/check', async (req, res) => {
+    let target;
+    try {
+        target = new URL(String(req.query.url));
+        if (!/^https?:$/.test(target.protocol)) throw new Error('bad protocol');
+    } catch {
+        return res.status(400).json({ error: 'Invalid url' });
+    }
+    try {
+        const upstream = await fetch(target, { redirect: 'follow', signal: AbortSignal.timeout(8000) });
+        const type = (upstream.headers.get('content-type') || '').split(';')[0].trim();
+        const disposition = upstream.headers.get('content-disposition') || '';
+        upstream.body?.cancel().catch(() => {});
+        const download = /^\s*attachment/i.test(disposition) || NON_RENDERABLE.test(type);
+        res.json({ download });
+    } catch {
+        res.json({ download: false });
+    }
+});
+
 app.get('/', (req, res) => {
     res.sendFile(path.join(process.cwd(), '/public/index.html'));
 });
